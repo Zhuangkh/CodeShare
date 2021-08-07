@@ -1,0 +1,120 @@
+﻿@using System.Text.Json
+@using System.Web
+@model EditorModel
+
+@{
+    var urlPrefix = $"{Context.Request.Scheme}://{Context.Request.Host}/g/";
+    var rawCode = Html.Raw(Model.Code);
+}
+
+@section scripts{
+    <script>var require = { paths: { 'vs': '/3rd/monaco-editor/min/vs' } };</script>
+    <script src="~/3rd/monaco-editor/min/vs/loader.min.js"></script>
+    <script>
+    var editor = null;
+    var modesIds = null;
+    require(['vs/editor/editor.main'],
+        function () {
+            initEditor();
+        });
+
+    var initEditor = function () {
+        var editorDiv = document.getElementById('editor');
+
+        editor = monaco.editor.create(editorDiv,
+            {
+                automaticLayout: true,
+                theme: '@Model.Theme',
+                value: '@rawCode'
+            });
+
+        modesIds = monaco.languages.getLanguages().map(function (lang) { return lang.id; });
+        modesIds.sort();
+        for (var i = 0; i < modesIds.length; i++) {
+            var o = document.createElement('option');
+            o.textContent = modesIds[i];
+            o.value = modesIds[i];
+            $(".language-picker").append(o);
+        }
+        monaco.editor.setModelLanguage(editor.getModel(), '@Model.Lang');
+        $(".language-picker").val('@Model.Lang').change();
+        $(".language-picker").change(function () {
+            monaco.editor.setModelLanguage(editor.getModel(), modesIds[this.selectedIndex]);
+        });
+
+        $(".theme-picker").change(function () {
+            var newTheme = (this.selectedIndex === 1 ? 'vs' : (this.selectedIndex === 0 ? 'vs-dark' : 'hc-black'));
+            editor.updateOptions({ 'theme': newTheme });
+        });
+    }
+
+    function copyToClipboard() {
+        var link = document.getElementById("shareLink");
+        link.select();
+        document.execCommand("copy");
+    }
+    $("#sharebtn").click(function () {
+        editorData = {
+            Lang: editor._modelData.model._languageIdentifier.language,
+            Theme: editor._themeService._theme.id,
+            Code: editor.getValue()
+        }
+
+        $.post({
+            url: "Share",
+            data: editorData,
+            success: function (data) {
+                $(shareLink).val('@urlPrefix'+data);
+            }
+        });
+    });
+    </script>
+}
+
+
+<div class="row align-items-center">
+    <div class="col-4">
+        <label class="text-light">Language</label>
+        <select id="language-picker" class="language-picker"></select>
+    </div>
+    <div class="col-4">
+        <label class="text-light">Theme</label>
+        <select class="theme-picker">
+            <option>Visual Studio Dark</option>
+            <option>Visual Studio</option>
+            <option>High Contrast Dark</option>
+        </select>
+    </div>
+    <div class="col-4 text-end">
+        <button class="btn btn-primary" style="width: 100px; margin-bottom: 10px; margin-right: 4px;" id="sharebtn"
+                model-bs-toggle="modal" model-bs-target="#shareModal">
+            Share!
+        </button>
+
+    </div>
+</div>
+
+<div id="editor" class="editor-full"></div>
+
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ShareLink</h5>
+                <button type="button" class="btn-close" model-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="shareLink" class="form-control" aria-describedby="copy-button" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copy-button"
+                            onclick="copyToClipboard()">
+                        cpoy
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" model-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
