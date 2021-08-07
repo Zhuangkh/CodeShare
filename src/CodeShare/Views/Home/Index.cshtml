@@ -8,9 +8,9 @@
 }
 
 @section scripts{
-    <script>var require = { paths: { 'vs': '/3rd/monaco-editor/min/vs' } };</script>
-    <script src="~/3rd/monaco-editor/min/vs/loader.min.js"></script>
-    <script>
+<script>var require = { paths: { 'vs': '/lib/monaco-editor/min/vs' } };</script>
+<script src="~/lib/monaco-editor/min/vs/loader.min.js"></script>
+<script>
     var editor = null;
     var modesIds = null;
     require(['vs/editor/editor.main'],
@@ -53,6 +53,7 @@
         link.select();
         document.execCommand("copy");
     }
+
     $("#sharebtn").click(function () {
         editorData = {
             Lang: editor._modelData.model._languageIdentifier.language,
@@ -64,13 +65,12 @@
             url: "Share",
             data: editorData,
             success: function (data) {
-                $(shareLink).val('@urlPrefix'+data);
+                $(shareLink).val('@urlPrefix' + data);
             }
         });
     });
-    </script>
+</script>
 }
-
 
 <div class="row align-items-center">
     <div class="col-4">
@@ -86,34 +86,33 @@
         </select>
     </div>
     <div class="col-4 text-end">
-        <button class="btn btn-primary" style="width: 100px; margin-bottom: 10px; margin-right: 4px;" id="sharebtn"
-                model-bs-toggle="modal" model-bs-target="#shareModal">
+        <button type="button" style="width: 100px; margin-bottom: 10px; margin-right: 4px;"
+         class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal" id="sharebtn">
             Share!
         </button>
-
     </div>
 </div>
 
 <div id="editor" class="editor-full"></div>
 
-<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModal" aria-hidden="true">
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">ShareLink</h5>
-                <button type="button" class="btn-close" model-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="input-group mb-3">
                     <input type="text" id="shareLink" class="form-control" aria-describedby="copy-button" readonly>
                     <button class="btn btn-outline-secondary" type="button" id="copy-button"
-                            onclick="copyToClipboard()">
+                        onclick="copyToClipboard()">
                         cpoy
                     </button>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" model-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
